@@ -3,23 +3,23 @@
 #include <Adafruit_ICM20X.h>
 #include <Adafruit_ICM20948.h>
 #include <Adafruit_Sensor.h>
+#include <Arduino.h>
+#include <Adafruit_DPS310.h>
 #include <Wire.h>
   
 Adafruit_ICM20948 icm;
 uint16_t measurement_delay_us = 65535; // Delay between measurements for testing
-// For SPI mode, we need a CS pin
-#define ICM_CS 10
-// For software-SPI mode we need SCK/MOSI/MISO pins
-#define ICM_SCK 6
-#define ICM_MISO 7
-#define ICM_MOSI 7
+
+Adafruit_DPS310 dps;
+Adafruit_Sensor *dps_temp = dps.getTemperatureSensor();
+Adafruit_Sensor *dps_pressure = dps.getPressureSensor();
 
 void setup(void) {
 
   vTaskDelay(3000 / portTICK_PERIOD_MS);
   printf("ICM20948 demo\n");
   Serial.begin(115200);
- Wire.setPins(7, 6); //sda,scl
+  Wire.setPins(7, 6); //sda,scl
 
   // while (!Serial)
   //   delay(10); // will pause Zero, Leonardo, etc until serial console opens
@@ -112,6 +112,24 @@ void setup(void) {
   }
   Serial.println();
 
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  
+
+    Serial.println("DPS310");
+    if (! dps.begin_I2C(0x77, &Wire)) {
+      Serial.println("Failed to find DPS");
+      while (1) yield();
+    }
+      
+    Serial.println("DPS OK!");
+
+    // Setup highest precision
+    dps.configurePressure(DPS310_64HZ, DPS310_64SAMPLES);
+    dps.configureTemperature(DPS310_64HZ, DPS310_64SAMPLES);
+
+    dps_temp->printSensorDetails();
+    dps_pressure->printSensorDetails();
+
 }
 
 void loop() {
@@ -121,6 +139,10 @@ void loop() {
   sensors_event_t gyro;
   sensors_event_t mag;
   sensors_event_t temp;
+
+  sensors_event_t temp_event;
+  sensors_event_t pressure_event;
+
   icm.getEvent(&accel, &gyro, &temp, &mag);
 
   Serial.print("\t\tTemperature ");
@@ -154,7 +176,47 @@ void loop() {
   Serial.println(" radians/s ");
   Serial.println();
 
-  delay(100);
+  
+  if (dps.temperatureAvailable()) {
+    dps_temp->getEvent(&temp_event);
+    Serial.print(F("Temperature = "));
+    Serial.print(temp_event.temperature);
+    Serial.println(" *C");
+    Serial.println();
+  }
+
+  // Reading pressure also reads temp so don't check pressure
+  // before temp!
+  if (dps.pressureAvailable()) {
+    dps_pressure->getEvent(&pressure_event);
+    Serial.print(F("Pressure = "));
+    Serial.print(pressure_event.pressure);
+    Serial.println(" hPa"); 
+  
+    Serial.println();
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  //delay(100);
 
   //  Serial.print(temp.temperature);
   //

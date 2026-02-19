@@ -181,140 +181,140 @@ mySerial.printf(
 // ========= GAME CONTROLLER ACTIONS SECTION ========= //
 
 void processGamepad(ControllerPtr ctl) {
-  // There are different ways to query whether a button is pressed.
-  // By query each button individually:
-  //  a(), b(), x(), y(), l1(), etc...  
+  // // There are different ways to query whether a button is pressed.
+  // // By query each button individually:
+  // //  a(), b(), x(), y(), l1(), etc...  
  
-  //== PS4 X button = 0x0001 ==//
-  if (ctl->buttons() == 0x0001) {
-    // code for when X button is pushed
-  }
-  if (ctl->buttons() != 0x0001) {
-    // code for when X button is released
-  }
+  // //== PS4 X button = 0x0001 ==//
+  // if (ctl->buttons() == 0x0001) {
+  //   // code for when X button is pushed
+  // }
+  // if (ctl->buttons() != 0x0001) {
+  //   // code for when X button is released
+  // }
 
-  //== PS4 Square button = 0x0004 ==//
-  if (ctl->buttons() == 0x0004) {
-    // code for when square button is pushed
-  }
-  if (ctl->buttons() != 0x0004) {
-  // code for when square button is released
-  }
+  // //== PS4 Square button = 0x0004 ==//
+  // if (ctl->buttons() == 0x0004) {
+  //   // code for when square button is pushed
+  // }
+  // if (ctl->buttons() != 0x0004) {
+  // // code for when square button is released
+  // }
 
-  //== PS4 Triangle button = 0x0008 ==//
-  if (ctl->buttons() == 0x0008) {
-    // code for when triangle button is pushed
-  }
-  if (ctl->buttons() != 0x0008) {
-    // code for when triangle button is released
-  }
+  // //== PS4 Triangle button = 0x0008 ==//
+  // if (ctl->buttons() == 0x0008) {
+  //   // code for when triangle button is pushed
+  // }
+  // if (ctl->buttons() != 0x0008) {
+  //   // code for when triangle button is released
+  // }
 
-  //== PS4 Circle button = 0x0002 ==//
-  if (ctl->buttons() == 0x0002) {
-    // code for when circle button is pushed
-  }
-  if (ctl->buttons() != 0x0002) {
-    // code for when circle button is released
-  }
+  // //== PS4 Circle button = 0x0002 ==//
+  // if (ctl->buttons() == 0x0002) {
+  //   // code for when circle button is pushed
+  // }
+  // if (ctl->buttons() != 0x0002) {
+  //   // code for when circle button is released
+  // }
 
-  //== PS4 Dpad UP button = 0x01 ==//
-  if (ctl->buttons() == 0x01) {
-    // code for when dpad up button is pushed
-  }
-  if (ctl->buttons() != 0x01) {
-    // code for when dpad up button is released
-  }
+  // //== PS4 Dpad UP button = 0x01 ==//
+  // if (ctl->buttons() == 0x01) {
+  //   // code for when dpad up button is pushed
+  // }
+  // if (ctl->buttons() != 0x01) {
+  //   // code for when dpad up button is released
+  // }
 
-  //==PS4 Dpad DOWN button = 0x02==//
-  if (ctl->buttons() == 0x02) {
-    // code for when dpad down button is pushed
-  }
-  if (ctl->buttons() != 0x02) {
-    // code for when dpad down button is released
-  }
+  // //==PS4 Dpad DOWN button = 0x02==//
+  // if (ctl->buttons() == 0x02) {
+  //   // code for when dpad down button is pushed
+  // }
+  // if (ctl->buttons() != 0x02) {
+  //   // code for when dpad down button is released
+  // }
 
-  //== PS4 Dpad LEFT button = 0x08 ==//
-  if (ctl->buttons() == 0x08) {
-    // code for when dpad left button is pushed
-  }
-  if (ctl->buttons() != 0x08) {
-    // code for when dpad left button is released
-  }
+  // //== PS4 Dpad LEFT button = 0x08 ==//
+  // if (ctl->buttons() == 0x08) {
+  //   // code for when dpad left button is pushed
+  // }
+  // if (ctl->buttons() != 0x08) {
+  //   // code for when dpad left button is released
+  // }
 
-  //== PS4 Dpad RIGHT button = 0x04 ==//
-  if (ctl->buttons() == 0x04) {
-    // code for when dpad right button is pushed
-  }
-  if (ctl->buttons() != 0x04) {
-    // code for when dpad right button is released
-  }
+  // //== PS4 Dpad RIGHT button = 0x04 ==//
+  // if (ctl->buttons() == 0x04) {
+  //   // code for when dpad right button is pushed
+  // }
+  // if (ctl->buttons() != 0x04) {
+  //   // code for when dpad right button is released
+  // }
 
-  //== PS4 R1 trigger button = 0x0020 ==//
-  if (ctl->buttons() == 0x0020) {
-    // code for when R1 button is pushed
-  }
-  if (ctl->buttons() != 0x0020) {
-    // code for when R1 button is released
-  }
+  // //== PS4 R1 trigger button = 0x0020 ==//
+  // if (ctl->buttons() == 0x0020) {
+  //   // code for when R1 button is pushed
+  // }
+  // if (ctl->buttons() != 0x0020) {
+  //   // code for when R1 button is released
+  // }
 
-  //== PS4 R2 trigger button = 0x0080 ==//
-  if (ctl->buttons() == 0x0080) {
-    // code for when R2 button is pushed
-  }
-  if (ctl->buttons() != 0x0080) {
-    // code for when R2 button is released
-  }
+  // //== PS4 R2 trigger button = 0x0080 ==//
+  // if (ctl->buttons() == 0x0080) {
+  //   // code for when R2 button is pushed
+  // }
+  // if (ctl->buttons() != 0x0080) {
+  //   // code for when R2 button is released
+  // }
 
-  //== PS4 L1 trigger button = 0x0010 ==//
-  if (ctl->buttons() == 0x0010) {
-    // code for when L1 button is pushed
-  }
-  if (ctl->buttons() != 0x0010) {
-    // code for when L1 button is released
-  }
+  // //== PS4 L1 trigger button = 0x0010 ==//
+  // if (ctl->buttons() == 0x0010) {
+  //   // code for when L1 button is pushed
+  // }
+  // if (ctl->buttons() != 0x0010) {
+  //   // code for when L1 button is released
+  // }
 
-  //== PS4 L2 trigger button = 0x0040 ==//
-  if (ctl->buttons() == 0x0040) {
-    // code for when L2 button is pushed
-  }
-  if (ctl->buttons() != 0x0040) {
-    // code for when L2 button is released
-  }
+  // //== PS4 L2 trigger button = 0x0040 ==//
+  // if (ctl->buttons() == 0x0040) {
+  //   // code for when L2 button is pushed
+  // }
+  // if (ctl->buttons() != 0x0040) {
+  //   // code for when L2 button is released
+  // }
 
-  //== LEFT JOYSTICK - UP ==//
-  if (ctl->axisY() <= -25) {
-    // code for when left joystick is pushed up
-    }
+  // //== LEFT JOYSTICK - UP ==//
+  // if (ctl->axisY() <= -25) {
+  //   // code for when left joystick is pushed up
+  //   }
 
-  //== LEFT JOYSTICK - DOWN ==//
-  if (ctl->axisY() >= 25) {
-    // code for when left joystick is pushed down
-  }
+  // //== LEFT JOYSTICK - DOWN ==//
+  // if (ctl->axisY() >= 25) {
+  //   // code for when left joystick is pushed down
+  // }
 
-  //== LEFT JOYSTICK - LEFT ==//
-  if (ctl->axisX() <= -25) {
-    // code for when left joystick is pushed left
-  }
+  // //== LEFT JOYSTICK - LEFT ==//
+  // if (ctl->axisX() <= -25) {
+  //   // code for when left joystick is pushed left
+  // }
 
-  //== LEFT JOYSTICK - RIGHT ==//
-  if (ctl->axisX() >= 25) {
-    // code for when left joystick is pushed right
-  }
+  // //== LEFT JOYSTICK - RIGHT ==//
+  // if (ctl->axisX() >= 25) {
+  //   // code for when left joystick is pushed right
+  // }
 
-  //== LEFT JOYSTICK DEADZONE ==//
-  if (ctl->axisY() > -25 && ctl->axisY() < 25 && ctl->axisX() > -25 && ctl->axisX() < 25) {
-    // code for when left joystick is at idle
-  }
+  // //== LEFT JOYSTICK DEADZONE ==//
+  // if (ctl->axisY() > -25 && ctl->axisY() < 25 && ctl->axisX() > -25 && ctl->axisX() < 25) {
+  //   // code for when left joystick is at idle
+  // }
 
-  //== RIGHT JOYSTICK - X AXIS ==//
-  if (ctl->axisRX()) {
-    // code for when right joystick moves along x-axis
-  }
+  // //== RIGHT JOYSTICK - X AXIS ==//
+  // if (ctl->axisRX()) {
+  //   // code for when right joystick moves along x-axis
+  // }
 
-  //== RIGHT JOYSTICK - Y AXIS ==//
-  if (ctl->axisRY()) {
-  // code for when right joystick moves along y-axis
-  }
+  // //== RIGHT JOYSTICK - Y AXIS ==//
+  // if (ctl->axisRY()) {
+  // // code for when right joystick moves along y-axis
+  // }
   dumpGamepad(ctl);
 }
 
