@@ -1,5 +1,3 @@
-// Basic demo for accelerometer readings from Adafruit ICM20948
-
 #include <Adafruit_ICM20X.h>
 #include <Adafruit_ICM20948.h>
 #include <Adafruit_Sensor.h>
@@ -10,6 +8,14 @@
 #include <sensors.h>
 #include <madgwickfilter.h>
 #include <pids.h>
+#include <marg.h>
+
+// #define mag_offset_x -70.35
+// #define mag_offset_y -76.35
+// #define mag_offset_z -16.35
+// #define mag_scale_x 55.65
+// #define mag_scale_y 118.20
+// #define mag_scale_z 104.10
   
 Adafruit_ICM20948 icm;
 uint16_t measurement_delay_us = 65535; // Delay between measurements for testing
@@ -18,15 +24,33 @@ Adafruit_DPS310 dps;
 Adafruit_Sensor *dps_temp = dps.getTemperatureSensor();
 Adafruit_Sensor *dps_pressure = dps.getPressureSensor();
 
-sensors_event_t accel;
-sensors_event_t gyro;
-sensors_event_t mag;
-sensors_event_t temp;
+sensors_event_t accelerometer;
+sensors_event_t gyrometer;
+sensors_event_t magnetometer;
+sensors_event_t temperature;
 
 sensors_event_t temp_event;
 sensors_event_t pressure_event;
 
+madgwick_ahrs_t marg;
+
+
 void setup(void) {
+
+  float imu_offset_x = 0.0f;  // Adjust to your actual offset (e.g., 1cm)
+  float imu_offset_y = 0.0f;
+  float imu_offset_z = 0.0f;
+
+  float cal_mag_x = 0;
+  float cal_mag_y = 0;
+  float cal_mag_z = 0;
+
+  marg.beta = 0.1f;  // Adjust beta as needed (typically 0.1 to 1.0)
+  marg.zeta = 0.0f;  // Zeta for magnetometer bias (usually 0)
+  marg.q[0] = 1.0f;  // w
+  marg.q[1] = 0.0f;  // x
+  marg.q[2] = 0.0f;  // y
+  marg.q[3] = 0.0f;  // z
 
   pid_vars yaw = {0};
   pid_vars roll = {0};
@@ -35,7 +59,7 @@ void setup(void) {
   vTaskDelay(1500 / portTICK_PERIOD_MS);
   printf("ICM20948 demo\n");
   Serial.begin(115200);
-  Wire.setPins(7, 6); //sda,scl
+  Wire.setPins(7, 8); //sda,scl
   icm20948_init(&icm);
 
   // while (!Serial)
@@ -45,17 +69,15 @@ void setup(void) {
   
   dps310_init(&dps);
 
-
   while(1){
 
 
-  icm.getEvent(&accel, &gyro, &temp, &mag);
+  icm.getEvent(&accelerometer, &gyrometer, &temperature, &magnetometer);
 
   // Apply magnetometer calibration
-  float cal_mag_x = (mag.magnetic.x - mag_offset_x) / mag_scale_x;
-  float cal_mag_y = (mag.magnetic.y - mag_offset_y) / mag_scale_y;
-  float cal_mag_z = (mag.magnetic.z - mag_offset_z) / mag_scale_z;
-
+  float mx_cal = (magnetometer.magnetic.x - mag_offset_x) / mag_scale_x;
+  float my_cal = (magnetometer.magnetic.y - mag_offset_y) / mag_scale_y;
+  float mz_cal = (magnetometer.magnetic.z - mag_offset_z) / mag_scale_z;
   if (dps.temperatureAvailable()) {
     dps_temp->getEvent(&temp_event);
   }
@@ -81,22 +103,34 @@ void setup(void) {
 
     float roll = 0.0, pitch = 0.0, yaw = 0.0;
 
-    imu_filter(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, gyro.gyro.x, gyro.gyro.y, gyro.gyro.z);
+    imu_filter(accelerometer.acceleration.x, accelerometer.acceleration.y, accelerometer.acceleration.z, gyrometer.gyro.x, gyrometer.gyro.y, gyrometer.gyro.z);
     eulerAngles(q_est, &roll, &pitch, &yaw);
-    printf("roll: %f, pitch: %f, yaw: %f\n", roll, pitch, yaw);
 
-    Serial.println();
-    Serial.println();
-    // vTaskDelay(1 / portTICK_PERIOD_MS);
-  
-  }
+    // printf("6DOF: roll: %f, pitch: %f, yaw: %f\n\n", roll, pitch, yaw);
+
+    // static uint64_t last_time = 0;
+    // uint64_t now = esp_timer_get_time();
+    // float deltat = (last_time == 0) ? 0.01f : (now - last_time) / 1000000.0f;
+    // last_time = now;
+
+    MadgwickQuaternionUpdate(accelerometer.acceleration.x, accelerometer.acceleration.y, accelerometer.acceleration.z, gyrometer.gyro.x, gyrometer.gyro.y, gyrometer.gyro.z, mx_cal, my_cal, mz_cal, measurement_delay_us / 100000.0f, &marg);
+      ToEulerAngles(&marg, &roll, &pitch, &yaw);
+
+      
+      printf("9DOF: roll: %f, pitch: %f, yaw: %f\n\n", roll, pitch, yaw);
+
+      Serial.println(); 
+      Serial.println();
+      vTaskDelay(10 / portTICK_PERIOD_MS);
+    
+    }
 }
 
 void loop() {
    
 }
 
-
+// YOU CAN DO IT FARES!
 
 
 

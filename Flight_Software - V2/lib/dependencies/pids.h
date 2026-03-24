@@ -1,23 +1,15 @@
-#ifndef PIDS_H
-#define PIDS_H
-
 #include <Arduino.h>
 #include <math.h>
 #include <driver/ledc.h>
 
-#define M1 9
+#define M1 1
 #define m1_chan LEDC_CHANNEL_0
-#define M2 10
+#define M2 2
 #define m2_chan LEDC_CHANNEL_1
-#define M3 2    
+#define M3 9
 #define m3_chan LEDC_CHANNEL_2
-#define M4 1
+#define M4 8
 #define m4_chan LEDC_CHANNEL_3
-
-// #define M1 9    // Front left  (was GPIO 9)
-// #define M2 2    // Front right (was GPIO 2)
-// #define M3 10   // Back left   (was GPIO 10)
-// #define M4 1    // Back right  (was GPIO 1)
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -50,8 +42,5 @@ void get_pids(pid_vars *pid);
 
 void pwm_init(int motor_pin, ledc_channel_t channel);
 
-void calibrate_motors(int motor_pin, ledc_channel_t channel);
-
 void update_pwm(float duty, ledc_channel_t channel);
 
-#endif

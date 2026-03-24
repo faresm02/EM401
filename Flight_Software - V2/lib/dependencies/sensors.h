@@ -1,6 +1,3 @@
-#ifndef SENSORS_H
-#define SENSORS_H
-
 #include <Adafruit_ICM20X.h>
 #include <Adafruit_ICM20948.h>  
 
@@ -28,4 +25,3 @@ void dps310_init(Adafruit_DPS310 *dps);
 void calibrate_magnetometer(Adafruit_ICM20948 *icm, float *offset_x, float *offset_y, float *offset_z, float *scale_x, float *scale_y, float *scale_z);
 
 
-#endif

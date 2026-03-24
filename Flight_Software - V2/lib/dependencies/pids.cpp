@@ -1,12 +1,11 @@
 #include <pids.h>
 #include <driver/ledc.h>
 #include <math.h>
-#include <esp_timer.h>
 
 
 void get_pids(pid_vars *pid){
     double dt;
-    uint64_t currTime = esp_timer_get_time();
+    uint64_t currTime = xTaskGetTickCount();
     
     //Calculate error
     pid->E = pid->sp-pid->pv;
@@ -31,13 +30,12 @@ void get_pids(pid_vars *pid){
     pid->D = pid->Kd*pid->filterD;
     
     //clamps D term so if the changing degrees is small it doesnt react
-    // if (pid->gyropv < 15 && pid->gyropv > -15){pid->D=0;}
-    
+    if (pid->gyropv < 15 && pid->gyropv > -15){pid->D=0;}
 
     //summs the parts together to get final pulse
     pid->pulse = pid->P + pid->I + pid->D;
     //if the error
-    // if (fabs(pid->E)< 1){pid->pulse = 0;}
+    if (fabs(pid->E)< 1){pid->pulse = 0;}
     
     pid->prevTime = currTime;
     pid->prevE = pid->E;
@@ -70,40 +68,9 @@ void pwm_init(int motor_pin, ledc_channel_t channel)
 
 }
 
-void calibrate_motors(int motor_pin, ledc_channel_t channel)
-{
-    // Prepare and then apply the LEDC PWM timer configuration
-    ledc_timer_config_t ledc_timer = {
-        .speed_mode       = LEDC_MODE,
-        .duty_resolution  = LEDC_DUTY_RES,
-        .timer_num        = LEDC_TIMER,
-        .freq_hz          = LEDC_FREQUENCY,  // Set output frequency at 1.6 kHz
-        .clk_cfg          = LEDC_CLK_SRC,
-    };
-    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
-
-    // Prepare and then apply the LEDC PWM channel configuration
-    ledc_channel_config_t ledc_channel = {
-        .gpio_num       = motor_pin,
-        .speed_mode     = LEDC_MODE,
-        .channel        = channel,
-        .timer_sel      = LEDC_TIMER,
-        .duty = (uint32_t)(8192.0f * 0.4f),// Set duty to 100%
-        .hpoint          = 0,
-
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
-
-
-    // vTaskDelay(10000 / portTICK_PERIOD_MS); // Run motors at full throttle for 5 seconds to calibrate ESCs
-    // update_pwm(0, channel); // Set duty to 0% after calibration
-
-}
-
-
 void update_pwm(float duty, ledc_channel_t channel){
     // float duty_scaled = ((duty/5)+20)/100;
-    float duty_scaled = (duty/625.0f);
+    float duty_scaled = (duty-125)/125;
     ESP_ERROR_CHECK(ledc_set_duty(LEDC_MODE, channel, (8192)*duty_scaled)); // Set duty to 0%
     ESP_ERROR_CHECK(ledc_update_duty(LEDC_MODE, channel));
 }

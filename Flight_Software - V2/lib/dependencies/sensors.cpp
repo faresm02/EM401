@@ -6,7 +6,7 @@
 
 
 void icm20948_init(Adafruit_ICM20948 *icm){
-  vTaskDelay(100 / portTICK_PERIOD_MS);
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
      Serial.println("Adafruit ICM20948 test!");
 
   // Try to initialize!
@@ -95,11 +95,12 @@ void icm20948_init(Adafruit_ICM20948 *icm){
   }
   
   Serial.println("ICM20948 INITIALISATION SUCCESSFUL :)");
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
 
 }
 
 void dps310_init(Adafruit_DPS310 *dps){
-    vTaskDelay(10 / portTICK_PERIOD_MS);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     Serial.println("DPS310");
     if (! dps->begin_I2C(0x77, &Wire)) {
       Serial.println("Failed to find DPS");
