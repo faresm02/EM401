@@ -14,17 +14,25 @@ typedef struct {
     int16_t ry;
     uint16_t buttons;
     uint8_t dpad;
+    bool transmitter_connection;
 } controller_packet_t;
 
-typedef struct {
+typedef struct {  
     float roll;
     float pitch;
     float yaw;
+    float roll_sp;
+    float pitch_sp;
+    float yaw_rate_sp;
     float roll_kp, roll_kd, roll_ki;
     float pitch_kp, pitch_kd, pitch_ki;
     float yaw_kp, yaw_kd, yaw_ki;
+    float roll_trim;
+    float pitch_trim;
     uint8_t pid_axis;
     uint8_t pid_param;
+    uint8_t pid_loop;   // 0 = angle, 1 = rate
+    bool receiver_connection;
 } telemetry_packet_t;
 
 controller_packet_t txPacket;
@@ -85,6 +93,7 @@ void dumpGamepad(ControllerPtr ctl) {
     txPacket.ly = ctl->axisY();
     txPacket.buttons = ctl->buttons();
     txPacket.dpad = ctl->dpad();
+    txPacket.transmitter_connection = false;
 
     esp_now_send(flightMAC, (uint8_t *)&txPacket, sizeof(txPacket));
 
@@ -186,12 +195,81 @@ void loop() {
       last_print = millis();
       const char* axes[] = {"Roll", "Pitch", "Yaw"};
       const char* params[] = {"Kp", "Kd", "Ki"};
+
+
+      // const char* loop = (rxTelemetry.pid_loop == 1) ? "RATE" : "ANGLE";
+
+      // const char* loop;
+      // if (rxTelemetry.pid_axis == 2) loop = "YAW";
+      // else loop = (rxTelemetry.pid_loop == 1) ? "RATE" : "ANGLE";
+
+      const char* loop;
+if (rxTelemetry.pid_loop == 2) loop = "TRIM";
+else if (rxTelemetry.pid_axis == 2) loop = "YAW";
+else loop = (rxTelemetry.pid_loop == 1) ? "RATE" : "ANGLE";
       
-      Serial.printf("T:%d B:%d LX:%d LY:%d RX:%d RY:%d BTN:0x%04X DPAD:0x%02X\n", txPacket.throttle, txPacket.brake, txPacket.lx, txPacket.ly, txPacket.rx, txPacket.ry, txPacket.buttons, txPacket.dpad);
-      Serial.printf("R:%.1f P:%.1f Y:%.1f | Editing: %s %s\n", rxTelemetry.roll, rxTelemetry.pitch, rxTelemetry.yaw, axes[rxTelemetry.pid_axis], params[rxTelemetry.pid_param]);
-      Serial.printf("Roll  Kp:%.3f Kd:%.3f Ki:%.3f\n", rxTelemetry.roll_kp, rxTelemetry.roll_kd, rxTelemetry.roll_ki);
-      Serial.printf("Pitch Kp:%.3f Kd:%.3f Ki:%.3f\n", rxTelemetry.pitch_kp, rxTelemetry.pitch_kd, rxTelemetry.pitch_ki);
-      Serial.printf("Yaw   Kp:%.3f Kd:%.3f Ki:%.3f\n", rxTelemetry.yaw_kp, rxTelemetry.yaw_kd, rxTelemetry.yaw_ki);
+      // Serial.printf("T:%d B:%d LX:%d LY:%d RX:%d RY:%d BTN:0x%04X DPAD:0x%02X\n", txPacket.throttle, txPacket.brake, txPacket.lx, txPacket.ly, txPacket.rx, txPacket.ry, txPacket.buttons, txPacket.dpad);
+      // Serial.printf("R:%.1f P:%.1f Y:%.1f | Editing: %s %s\n", rxTelemetry.roll, rxTelemetry.pitch, rxTelemetry.yaw, axes[rxTelemetry.pid_axis], params[rxTelemetry.pid_param]);
+      // Serial.printf("Roll  Kp:%.3f Kd:%.3f Ki:%.3f\n", rxTelemetry.roll_kp, rxTelemetry.roll_kd, rxTelemetry.roll_ki);
+      // Serial.printf("Pitch Kp:%.3f Kd:%.3f Ki:%.3f\n", rxTelemetry.pitch_kp, rxTelemetry.pitch_kd, rxTelemetry.pitch_ki);
+      // Serial.printf("Yaw   Kp:%.3f Kd:%.3f Ki:%.3f\n", rxTelemetry.yaw_kp, rxTelemetry.yaw_kd, rxTelemetry.yaw_ki);
+      // printf("[%s] %s %s = %.3f\n", loop, axis_str, param_str, value);
+
+      float value = 0.0f;
+
+if (rxTelemetry.pid_axis == 0) {
+    if (rxTelemetry.pid_param == 0) value = rxTelemetry.roll_kp;
+    else if (rxTelemetry.pid_param == 1) value = rxTelemetry.roll_kd;
+    else value = rxTelemetry.roll_ki;
+}
+else if (rxTelemetry.pid_axis == 1) {
+    if (rxTelemetry.pid_param == 0) value = rxTelemetry.pitch_kp;
+    else if (rxTelemetry.pid_param == 1) value = rxTelemetry.pitch_kd;
+    else value = rxTelemetry.pitch_ki;
+}
+else {
+    if (rxTelemetry.pid_param == 0) value = rxTelemetry.yaw_kp;
+    else if (rxTelemetry.pid_param == 1) value = rxTelemetry.yaw_kd;
+    else value = rxTelemetry.yaw_ki;
+}
+    // if(rxPacket.transmitter_connection){
+    //     txTelemetry.receiver_connection = true;
+    // } else {
+    //     txTelemetry.receiver_connection = false;
+    // }
+
+    // if(rxTelemetry.receiver_connection){
+    //   txPacket.transmitter_connection = true;
+    // }
+    // else{
+    //   txPacket.transmitter_connection = false;  
+    // }
+    
+
+
+    // txPacket.throttle = ctl->throttle();
+    // txPacket.brake = ctl->brake();
+    // txPacket.rx = ctl->axisRX();
+    // txPacket.ry = ctl->axisRY();
+    // txPacket.lx = ctl->axisX();
+    // txPacket.ly = ctl->axisY();
+    // txPacket.buttons = ctl->buttons();
+    // txPacket.dpad = ctl->dpad();
+Serial.printf("\n\n Data Sent to Flight Controller:\n\n");
+Serial.printf("T:%d   B: %d   Rx: %d   Ry: %d   Lx: %d   Ly: %d   Btn: %x   Dpad: %x", 
+      txPacket.throttle, txPacket.brake, txPacket.rx, txPacket.ry, txPacket.lx, txPacket.ly, txPacket.buttons, txPacket.dpad);
+    
+
+Serial.printf("\n\n Data Received from Flight Controller: \n\n");
+
+Serial.printf("Roll: pv:%.1f | sp: %.1f  Pitch: pv:%.1f | sp: %.1f Yaw Rate: pv:%.1f | sp: %.1f\n", rxTelemetry.pitch, rxTelemetry.roll_sp,rxTelemetry.roll, rxTelemetry.pitch_sp, rxTelemetry.yaw, rxTelemetry.yaw_rate_sp);
+// Serial.printf("Pitch:%.1f Roll:%.1f Yaw Rate:%.1f\n",rxTelemetry.roll, rxTelemetry.pitch, rxTelemetry.yaw);
+Serial.printf("[%s] Editing: %s %s = %.3f\n",loop,axes[rxTelemetry.pid_axis],params[rxTelemetry.pid_param], value);
+
+Serial.printf("Roll  Kp:%.3f Kd:%.3f Ki:%.3f\n",rxTelemetry.roll_kp, rxTelemetry.roll_kd, rxTelemetry.roll_ki);
+Serial.printf("Pitch Kp:%.3f Kd:%.3f Ki:%.3f\n",rxTelemetry.pitch_kp, rxTelemetry.pitch_kd, rxTelemetry.pitch_ki);
+Serial.printf("Yaw   Kp:%.3f Kd:%.3f Ki:%.3f\n",rxTelemetry.yaw_kp, rxTelemetry.yaw_kd, rxTelemetry.yaw_ki);
+Serial.printf("Trim R:%.1f P:%.1f\n", rxTelemetry.roll_trim, rxTelemetry.pitch_trim);
   }
 
     // The main loop must have some kind of "yield to lower priority task" event.

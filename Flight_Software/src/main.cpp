@@ -54,7 +54,6 @@ float cal_mag_x = 0;
 float cal_mag_y = 0;
 float cal_mag_z = 0;
 
-
 const char* axes[] = {"Roll", "Pitch", "Yaw"};
 const char* params[] = {"Kp", "Kd", "Ki"};
 
@@ -68,15 +67,15 @@ const char* params[] = {"Kp", "Kd", "Ki"};
 
 void setup() {
 
-  pid_vars yaw_pid = {0};
+  // pid_vars yaw_pid = {0};
   pid_vars roll_pid = {0};
   pid_vars pitch_pid = {0}; 
 
-  pid_vars yaw_pid = {0};
   pid_vars roll_angle = {0};
   pid_vars roll_rate = {0};
   pid_vars pitch_angle = {0};
   pid_vars pitch_rate = {0};
+  pid_vars yaw_rate = {0};
 
   int16_t rx_input=0; 
   int16_t ry_input=0;
@@ -87,26 +86,30 @@ void setup() {
 
 
 // Outer loop - angle (P only)
-roll_angle.Kp = 5.0;
-roll_angle.Ki = 0;
-roll_angle.Kd = 0;
+roll_angle.Kp = 0.750;//1.020;
+roll_angle.Ki = 0;//0.4;
+roll_angle.Kd = 0;//0.5;
 roll_angle.r = 1;
 
-pitch_angle.Kp = 5.0;
+pitch_angle.Kp = 0.750;//1.030;//1.3;
 pitch_angle.Ki = 0;
 pitch_angle.Kd = 0;
 pitch_angle.r = 1;
 
 // Inner loop - rate
-roll_rate.Kp = 0.5;
-roll_rate.Kd = 0.01;
+roll_rate.Kp = 0.20;//1.0;
+roll_rate.Kd = 4.5;//4.5;
 roll_rate.Ki = 0;
 roll_rate.r = 1;
 
-pitch_rate.Kp = 0.5;
-pitch_rate.Kd = 0.01;
+pitch_rate.Kp = 0.20;//0.5;
+pitch_rate.Kd = 5.0;//4.5;
 pitch_rate.Ki = 0;
 pitch_rate.r = 1;
+
+yaw_rate.Kp = 0.5;
+yaw_rate.Ki = 0.0;
+yaw_rate.Kd = 1.0;
 
 
 
@@ -221,21 +224,21 @@ pitch_rate.r = 1;
 
 
   //PID coefficients
-  roll_pid.Kp = 1.0;
-  roll_pid.Kd = 0.0;
-  roll_pid.Ki = 0;
+  // roll_pid.Kp = 0.0;
+  // roll_pid.Kd = 0.0;
+  // roll_pid.Ki = 0;
 
-  pitch_pid.Kp = 1.0;
-  pitch_pid.Kd = 0.0;
-  pitch_pid.Ki = 0;
+  // pitch_pid.Kp = 0.0;
+  // pitch_pid.Kd = 0.0;
+  // pitch_pid.Ki = 0;
 
-  yaw_pid.Kp = 0; 
-  yaw_pid.Kd = 0; 
-  yaw_pid .Ki = 0; 
+  // yaw_pid.Kp = 0; 
+  // yaw_pid.Kd = 0; 
+  // yaw_pid .Ki = 0; 
 
-  roll_pid.r = 1;
-  pitch_pid.r = 1;
-  yaw_pid.r = 1;
+  // roll_pid.r = 1;
+  // pitch_pid.r = 1;
+  // yaw_pid.r = 1;
 
   uint64_t prev_time = esp_timer_get_time();
 
@@ -244,8 +247,9 @@ pitch_rate.r = 1;
     float deltat = (now - prev_time) / 1000000.0f;
     prev_time = now;
 
-    process_controller_data(&roll_pid, &pitch_pid, &yaw_pid, roll_pid.pv, pitch_pid.pv, yaw_pid.pv);
-
+//    //process_controller_data(&roll_pid, &pitch_pid, &yaw_pid, roll_pid.pv, pitch_pid.pv, yaw_pid.pv);
+    // process_controller_data(&roll_rate, &pitch_rate, &yaw_pid, roll_angle.pv, pitch_angle.pv, yaw_pid.pv);
+process_controller_data(&roll_angle, &roll_rate,&pitch_angle, &pitch_rate,&yaw_rate,roll_angle.pv, pitch_angle.pv, yaw_rate.pv);
     icm.getEvent(&accel, &gyro, &temp, &mag);
 
     if (dps.temperatureAvailable()) {
@@ -257,21 +261,14 @@ pitch_rate.r = 1;
       dps_pressure->getEvent(&pressure_event);
     }
 
-    // Apply magnetometer calibration
-    float mx_cal = (mag.magnetic.x - mag_offset_x) / mag_scale_x;
-    float my_cal = (mag.magnetic.y - mag_offset_y) / mag_scale_y;
-    float mz_cal = (mag.magnetic.z - mag_offset_z) / mag_scale_z;
+    // // Apply magnetometer calibration
+    // float mx_cal = (mag.magnetic.x - mag_offset_x) / mag_scale_x;
+    // float my_cal = (mag.magnetic.y - mag_offset_y) / mag_scale_y;
+    // float mz_cal = (mag.magnetic.z - mag_offset_z) / mag_scale_z;
 
-    float accel_norm = accel.acceleration.x * accel.acceleration.x + 
-                   accel.acceleration.y * accel.acceleration.y + 
-                   accel.acceleration.z * accel.acceleration.z;
-
-// if (accel_norm > 0.01f) {
-//     MadgwickQuaternionUpdate(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z,
-//                              gyro.gyro.x, gyro.gyro.y, gyro.gyro.z,
-//                              0, 0, 0, deltat, &marg);
-// }
-
+    // float accel_norm = accel.acceleration.x * accel.acceleration.x + 
+    //                accel.acceleration.y * accel.acceleration.y + 
+    //                accel.acceleration.z * accel.acceleration.z;
 
 
     // MadgwickQuaternionUpdate(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z,
@@ -281,18 +278,17 @@ pitch_rate.r = 1;
     // MadgwickQuaternionUpdate(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, gyro.gyro.x, gyro.gyro.y, gyro.gyro.z, mx_cal, my_cal, mz_cal, deltat, &marg);
     // ToEulerAngles(&marg, &roll, &pitch, &yaw);
 
-imu_filter(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z,
-           gyro.gyro.x, gyro.gyro.y, gyro.gyro.z, deltat, var_beta);
+    imu_filter(accel.acceleration.x, accel.acceleration.y, accel.acceleration.z, gyro.gyro.x, gyro.gyro.y, gyro.gyro.z, deltat, var_beta);
 
-eulerAngles(q_est, &roll, &pitch, &yaw);
-
+    eulerAngles(q_est, &roll, &pitch, &yaw);
 
 
 
 
-    roll_pid.sp = 0;
-    pitch_pid.sp = 0;
-    yaw_pid.sp = 0;
+
+//    // roll_pid.sp = 0;
+//    // pitch_pid.sp = 0;
+//    // yaw_pid.sp = 0;
 
     //   roll_pid.pv = -roll;
     //   pitch_pid.pv = -pitch;
@@ -316,8 +312,8 @@ eulerAngles(q_est, &roll, &pitch, &yaw);
     rx_input = (abs(rxPacket.rx) > 30) ? rxPacket.rx : 0;
     ry_input = (abs(rxPacket.ry) > 30) ? rxPacket.ry : 0;
 
-    roll_pid.sp = rx_input * (15.0f / 512.0f);
-    pitch_pid.sp = ry_input * (15.0f / 512.0f);
+    // roll_pid.sp = rx_input * (15.0f / 512.0f);
+    // pitch_pid.sp = ry_input * (15.0f / 512.0f);
 
 
 
@@ -326,33 +322,67 @@ eulerAngles(q_est, &roll, &pitch, &yaw);
     // roll_pid.pv = -pitch;
     // pitch_pid.pv = -roll;
 
-    roll_pid.pv = pitch;
-    pitch_pid.pv = roll;
+//    // roll_pid.pv = pitch;
+//    // pitch_pid.pv = roll;
 
     // roll_pid.pv = roll;
     // pitch_pid.pv = pitch;
 
-    roll_pid.gyropv = gyro.gyro.y;
-    pitch_pid.gyropv = gyro.gyro.x;
-    //  yaw_pid.pv = yaw;
-    yaw_pid.pv = 0;
+//    // roll_pid.gyropv = gyro.gyro.y;
+//    // pitch_pid.gyropv = gyro.gyro.x;
+//    //  yaw_pid.pv = yaw;
+//    // yaw_pid.pv = 0;
 
     
 
-    get_pids(&roll_pid);
-    get_pids(&pitch_pid);
-    get_pids(&yaw_pid);
+//    //get_pids(&roll_pid);
+//    //get_pids(&pitch_pid);
+//    //get_pids(&yaw_pid);
 
+// Outer loop: angle → desired rate
+roll_angle.sp = rx_input * (15.0f / 512.0f);
+roll_angle.pv = pitch -roll_trim; // Adjust for level flight trim
+get_pids(&roll_angle);
+
+pitch_angle.sp = ry_input * (15.0f / 512.0f);
+pitch_angle.pv = roll -pitch_trim; // Adjust for level flight trim
+get_pids(&pitch_angle);
+
+// Inner loop: desired rate → motor output
+roll_rate.sp = roll_angle.pulse;
+roll_rate.pv = -gyro.gyro.y;
+roll_rate.gyropv = gyro.gyro.y;
+get_pids(&roll_rate);
+
+pitch_rate.sp = pitch_angle.pulse;
+pitch_rate.pv = gyro.gyro.x;
+pitch_rate.gyropv = gyro.gyro.x;
+get_pids(&pitch_rate);
+
+    // yaw_pid.sp = 0;
+    // yaw_pid.pv = 0;
+
+int16_t lx_input = (abs(rxPacket.lx) > 30) ? rxPacket.lx : 0;
+yaw_rate.sp = lx_input * (2.0f / 512.0f);
+yaw_rate.pv = gyro.gyro.z;
+yaw_rate.gyropv = gyro.gyro.z;
+get_pids(&yaw_rate);  
 
 
 
     
 
-      //set motor values
-    m1_pulse = 125 + thrust - pitch_pid.pulse - roll_pid.pulse - yaw_pid.pulse /*-cont_yaw*/;   // Front left motor 
-    m3_pulse = 125 + thrust - pitch_pid.pulse + roll_pid.pulse + yaw_pid.pulse /*+ cont_yaw*/;   // Front right motor 
-    m2_pulse = 125 + thrust + pitch_pid.pulse - roll_pid.pulse + yaw_pid.pulse /*+ cont_yaw*/;   // Back left motor
-    m4_pulse = 125 + thrust + pitch_pid.pulse + roll_pid.pulse - yaw_pid.pulse /*- cont_yaw*/;   // Back right motor 
+//    //   //set motor values
+//    // m1_pulse = 125 + thrust - pitch_pid.pulse - roll_pid.pulse - yaw_pid.pulse /*-cont_yaw*/;   // Front left motor 
+//    // m3_pulse = 125 + thrust - pitch_pid.pulse + roll_pid.pulse + yaw_pid.pulse /*+ cont_yaw*/;   // Front right motor 
+//    // m2_pulse = 125 + thrust + pitch_pid.pulse - roll_pid.pulse + yaw_pid.pulse /*+ cont_yaw*/;   // Back left motor
+//    // m4_pulse = 125 + thrust + pitch_pid.pulse + roll_pid.pulse - yaw_pid.pulse /*- cont_yaw*/;   // Back right motor 
+
+
+m1_pulse = 125 + thrust - pitch_rate.pulse - roll_rate.pulse - yaw_rate.pulse;
+m3_pulse = 125 + thrust - pitch_rate.pulse + roll_rate.pulse + yaw_rate.pulse;
+m2_pulse = 125 + thrust + pitch_rate.pulse - roll_rate.pulse + yaw_rate.pulse;
+m4_pulse = 125 + thrust + pitch_rate.pulse + roll_rate.pulse - yaw_rate.pulse;
 
     if (m1_pulse > max_pulse){m1_pulse = max_pulse;}
     if (m1_pulse < min_pulse){m1_pulse = min_pulse;}
@@ -366,23 +396,42 @@ eulerAngles(q_est, &roll, &pitch, &yaw);
     if (m4_pulse > max_pulse){m4_pulse = max_pulse;}
     if (m4_pulse < min_pulse){m4_pulse = min_pulse;}
 
-  static uint64_t kill_time = 0;
+  static uint64_t kill_time_short = 0;
     bool circle = rxPacket.buttons & 0x0002;
     if (circle) {
-        kill_time = esp_timer_get_time();
+        kill_time_short = esp_timer_get_time();
     }
 
-    if ((esp_timer_get_time() - kill_time) < 3000000) {  // 10 seconds
+    if ((esp_timer_get_time() - kill_time_short) < 3000000) {  // 3 seconds
         thrust = 0;
         roll_pid.I = 0;
         pitch_pid.I = 0;
-        yaw_pid.I = 0;
+        yaw_rate.I = 0;
+        roll_rate.I = 0;
+        pitch_rate.I = 0;
+        roll_angle.I = 0;
+        pitch_angle.I = 0;
+        yaw_rate.I = 0;
         m1_pulse = 125;
         m2_pulse = 125;
         m3_pulse = 125;
         m4_pulse = 125;
     }
 
+    if(thrust < 2.0f){
+        roll_pid.I = 0; 
+        pitch_pid.I = 0;
+        yaw_rate.I = 0;
+        roll_rate.I = 0;
+        pitch_rate.I = 0;
+        roll_angle.I = 0;
+        pitch_angle.I = 0;
+        yaw_rate.I = 0;
+        m1_pulse = 125;
+        m2_pulse = 125;
+        m3_pulse = 125;
+        m4_pulse = 125; 
+    } 
       
     update_pwm(m1_pulse, m1_chan);
     update_pwm(m2_pulse, m2_chan); 
@@ -398,7 +447,7 @@ eulerAngles(q_est, &roll, &pitch, &yaw);
     if (millis() - last_print >= 150) {
         last_print = millis();
 
-      printf("\nRoll: %f, pitch: %f, yaw: %f\n", roll_pid.pv, pitch_pid.pv, yaw_pid.pv);
+      // printf("\nRoll: %f, pitch: %f, yaw: %f\n", roll_pid.pv, pitch_pid.pv, yaw_pid.pv);
 
       // printf("DPS310 Temp: %f C, Pressure: %f hPa\n", temp_event.temperature, pressure_event.pressure);
 
@@ -412,13 +461,26 @@ eulerAngles(q_est, &roll, &pitch, &yaw);
 
       printf("Editing: %s %s\r\n", axes[pid_axis], params[pid_param]);
 
-      printf("Roll  Kp:%.3f Kd:%.3f Ki:%.3f  ", roll_pid.Kp, roll_pid.Kd, roll_pid.Ki);
-      printf("Pitch Kp:%.3f Kd:%.3f Ki:%.3f  ", pitch_pid.Kp, pitch_pid.Kd, pitch_pid.Ki);
-      printf("Yaw   Kp:%.3f Kd:%.3f Ki:%.3f  ", yaw_pid.Kp, yaw_pid.Kd, yaw_pid.Ki);
+      // printf("Roll  Kp:%.3f Kd:%.3f Ki:%.3f  ", roll_pid.Kp, roll_pid.Kd, roll_pid.Ki);
+      // printf("Pitch Kp:%.3f Kd:%.3f Ki:%.3f  ", pitch_pid.Kp, pitch_pid.Kd, pitch_pid.Ki);
+      // printf("Yaw   Kp:%.3f Kd:%.3f Ki:%.3f  ", yaw_pid.Kp, yaw_pid.Kd, yaw_pid.Ki);
+
+      printf("[%s] %s %s  ",
+       use_rate_loop ? "RATE" : "ANGLE",
+       (pid_axis == 0 ? "ROLL" : pid_axis == 1 ? "PITCH" : "YAW"),
+       (pid_param == 0 ? "Kp" : pid_param == 1 ? "Kd" : "Ki"));
+
+      printf("Kp:%.3f Kd:%.3f Ki:%.3f\n",active_pid->Kp,active_pid->Kd,active_pid->Ki);
 
       printf("\nDelta t: %f\n",deltat);
 
-      printf("gyro x: %f, y: %f, z: %f\n", gyro.gyro.x, gyro.gyro.y, gyro.gyro.z);
+      printf("\nRoll  angle P:%.3f  rate P:%.3f D:%.3f pulse:%.3f\n\n", roll_angle.P, roll_rate.P, roll_rate.D, roll_rate.pulse);
+      printf("\nPitch angle P:%.3f  rate P:%.3f D:%.3f pulse:%.3f\n\n", pitch_angle.P, pitch_rate.P, pitch_rate.D, pitch_rate.pulse);
+      
+
+      printf("Trim R:%.1f P:%.1f  Mode: %s\n", roll_trim, pitch_trim, trim_mode ? "TRIM" : "PID");
+      
+      // printf("gyro x: %f, y: %f, z: %f\n", gyro.gyro.x, gyro.gyro.y, gyro.gyro.z);
 
       // printf("\n beta: %f\n", var_beta);
 
